@@ -6,6 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestQvsort(t *testing.T) {
+	Qsufsort([]byte("add"))
+}
+
 func TestCharNodeAdd(t *testing.T) {
 	node := &charNode{}
 	node.Add([]byte("abc"))

@@ -24,7 +24,9 @@
 
 package lcss
 
-import "sort"
+import (
+	"sort"
+)
 
 // Qsufsort constructs the suffix array for a given string.
 func Qsufsort(data []byte) []int {
@@ -73,6 +75,7 @@ func Qsufsort(data []byte) []int {
 	return sa
 }
 
+// TODO: Start here the rune implementation
 func sortedByFirstByte(data []byte) []int {
 	// total byte counts
 	var count [256]int
@@ -94,39 +97,47 @@ func sortedByFirstByte(data []byte) []int {
 }
 
 func initGroups(sa []int, data []byte) []int {
-	// label contiguous same-letter groups with the same group number
-	inv := make([]int, len(data))
-	prevGroup := len(sa) - 1
-	groupByte := data[sa[prevGroup]]
-	for i := len(sa) - 1; i >= 0; i-- {
+	var (
+		// label contiguous same-letter groups with the same group number
+		inv       = make([]int, len(data))
+		lastIndex = len(sa) - 1 // Assumes len(sa) == len(data)
+		prevGroup = lastIndex
+		groupByte = data[sa[lastIndex]]
+		iInc      = len(sa)
+	)
+
+	for i := prevGroup; i >= 0; i-- {
 		if b := data[sa[i]]; b < groupByte {
-			if prevGroup == i+1 {
-				sa[i+1] = -1
+			if prevGroup == iInc {
+				sa[iInc] = -1
 			}
+
 			groupByte = b
 			prevGroup = i
 		}
+
 		inv[sa[i]] = prevGroup
 		if prevGroup == 0 {
 			sa[0] = -1
 		}
+		iInc = i
 	}
 	// Separate out the final suffix to the start of its group.
 	// This is necessary to ensure the suffix "a" is before "aba"
 	// when using a potentially unstable sort.
-	lastByte := data[len(data)-1]
+
+	lastByte := data[lastIndex]
 	s := -1
 	for i := range sa {
-		if sa[i] >= 0 {
-			if data[sa[i]] == lastByte && s == -1 {
-				s = i
+		if sa[i] >= 0 && data[sa[i]] == lastByte && s == -1 {
+			s = i
+			for sa[i] != lastIndex {
+				i++
 			}
-			if sa[i] == len(sa)-1 {
-				sa[i], sa[s] = sa[s], sa[i]
-				inv[sa[s]] = s
-				sa[s] = -1 // mark it as an isolated sorted group
-				break
-			}
+			sa[i], sa[s] = sa[s], sa[i]
+			inv[sa[s]] = s
+			sa[s] = -1 // mark it as an isolated sorted group
+			break
 		}
 	}
 	return inv
